@@ -6,7 +6,7 @@ class Tarea:
 
     def __init__(self, titulo):
         self.titulo = titulo
-        self.completada = False
+        self.completada =  False
 
     def completar(self):
         self.completada = True
@@ -32,10 +32,8 @@ class GestorTareas:
         self.nombre_archivo = nombre_archivo
         self.tareas = []
 
-
     def guardar(self):
         datos = []
-
         for tarea in self.tareas:
             datos.append(tarea.a_diccionario())
 
@@ -58,15 +56,19 @@ class GestorTareas:
         if len(self.tareas) == 0:
             raise ValueError('No hay tareas en la lista')
         if not 1 <= numero <= len(self.tareas):
-            raise ValueError(f'El numero debe ser entre el 1 y el {len(self.tareas)}')
+            raise ValueError(f'La tarea debe ser entre el 1 y el {len(self.tareas)}')     
 
     def agregar(self, titulo):
         titulo = titulo.strip()
         if not titulo:
-            raise ValueError('El titulo no puede estar vacío')
+            raise ValueError('El titulo no puede estar vacio')
         self.tareas.append(Tarea(titulo))
         self.guardar()
 
+    def ver(self):
+        return self.tareas
+    
+    
     def modificar(self, numero):
         self.validar_numero(numero)
         self.tareas[numero - 1].completar()
@@ -77,39 +79,43 @@ class GestorTareas:
         self.tareas.pop(numero - 1)
         self.guardar()
 
-    def ver(self):
-        return self.tareas        
-
     def ver_pendientes(self):
         return [t for t in self.tareas if not t.completada]
-
+    
     def ver_completadas(self):
         return [t for t in self.tareas if t.completada]
 
-    def mas_larga(self):
-        return max(self.tareas, key = lambda t:len(t.titulo), default = None)
-
     def contar_pendientes(self):
         return sum(1 for t in self.tareas if not t.completada)
+    
+    def contar_completadas(self):
+        return sum(1 for t in self.tareas if t.completada)
+
+    def mas_larga(self):
+        return max(self.tareas, key=lambda t: len(t.titulo), default=None)
+
+    def ordenar(self):
+        return sorted(self.tareas, key=lambda t:t.titulo)
 
     def hay_pendientes(self):
         return any(not t.completada for t in self.tareas)
 
     def todas_completadas(self):
         return (len(self.tareas) > 0 and all(t.completada for t in self.tareas))
+    
 
 def mostrar_menu():
     while True:
-        try: 
+        try:
             opcion = int(input('Opciones'))
         except ValueError:
-            print('Tiene que ser un numero, no una letra')
+            print('Debe ser una opcion numerica y no una letra')
         else:
             if 1 <= opcion <= 8:
                 return opcion
-            print('Tiene que ser un numero dentro del 1 al 5')
+            print('Debe ser una opcion entre 1 y el 8')
 
-def pedir(mensaje):
+def pedir_numero(mensaje):
     try:
         return int(input(mensaje))
     except ValueError:
@@ -121,13 +127,13 @@ def opcion_agregar(gestor):
         gestor.agregar(titulo)
         print('Tarea agregada')
     except ValueError as error:
-        print(error) 
-
+        print(error)
 
 def opcion_modificar(gestor):
-    numero = pedir('Ingresa el numero a modificar')
+    numero = pedir_numero('Ingresa el numero a completar')
     if numero is None:
-        print('No existe la tarea')
+        print('No hay tareas en la lista')
+        return
     try:
         gestor.modificar(numero)
         print('Tarea completada')
@@ -135,9 +141,10 @@ def opcion_modificar(gestor):
         print(error)
 
 def opcion_eliminar(gestor):
-    numero = pedir('Ingresa el numero a eliminar')
+    numero = pedir_numero('Ingresa el numero a eliminar')
     if numero is None:
-        print('No existe la tarea')
+        print('No hay tareas en la lista')
+        return
     try:
         gestor.eliminar(numero)
         print('Tarea eliminada')
@@ -145,21 +152,40 @@ def opcion_eliminar(gestor):
         print(error)
 
 def opcion_ver(gestor):
-    tareas =  gestor.ver()
+    tareas = gestor.ver()
     if len(tareas) == 0:
-        print('No hay tareas en la listass')
-
-    for i, tarea in enumerate(tareas, start = 1):
+        print('No hay tareas en la lista')
+        return
+    for i, tarea in enumerate(tareas, start= 1):
         print(i, tarea)
 
-def opcion_ver_pendientes(gestor):
+def opcion_ordenadas(gestor):
+    ordenadas = gestor.ordenar()
+    if len(ordenadas) == 0:
+        print('No hay tareas en la lista')
+        return
+    for o in ordenadas:
+        print(o)    
+
+def opcion_ver_p(gestor):
     pendientes = gestor.ver_pendientes()
     if len(pendientes) == 0:
         print('No hay pendientes')
-    for tarea in pendientes:
-        print(tarea)
+        return
+    for p in pendientes:
+        print(p)
+    print('\n')    
 
-def opcion_tareas_larga(gestor):
+def opcion_ver_c(gestor):
+    pendientes = gestor.ver_completadas()
+    if len(pendientes) == 0:
+        print('No hay pendientes')
+        return
+    for p in pendientes:
+        print(p)
+    print('\n')
+
+def opcion_mas_larga(gestor):
     mas_larga = gestor.mas_larga()
     if mas_larga is None:
         print('No hay tareas en la lista')
@@ -167,58 +193,46 @@ def opcion_tareas_larga(gestor):
     print(mas_larga)
 
 def ver_resumen(gestor):
-    t_completas = gestor.todas_completadas()
-    alguna_pendiente = gestor.hay_pendientes()
-    if t_completas:
-        print('Todas las tareas estan completas')
-    if alguna_pendiente:
-        n_pendientes = gestor.contar_pendientes()
-        completadas = gestor.ver_completadas()
-        pendientes = gestor.ver_pendientes()
-        print(f'Pendientes: {n_pendientes}')
-        for p in pendientes:
-            print(p)
-        for c in completadas:
-            print(c)
+    tcompletas = gestor.todas_completadas()
+    hpendientes = gestor.hay_pendientes()
+    tareas = gestor.ver()
+    if len(tareas) == 0:
+        print('No hay tareas en la lista')
+    elif tcompletas:
+        print('Todas las tareas han sido completadas, felicidades')
+    elif hpendientes:
 
-gestor = GestorTareas(ARCHIVO_TAREAS)
-gestor.cargar()
-
-while True:
-
-    opcion = mostrar_menu()
-
-    if opcion == 1:
-        opcion_agregar(gestor)
-    elif opcion == 2:
-        opcion_modificar(gestor)
-    elif opcion == 3:
-        opcion_eliminar(gestor)
-    elif opcion == 4:
-        opcion_ver(gestor)
-    elif opcion == 5:
-        opcion_ver_pendientes(gestor)
-    elif opcion == 6:
-        opcion_tareas_larga(gestor)
-    elif opcion == 7:
-        ver_resumen(gestor)
-    elif opcion == 8:
-        print('Gracias')
-        break
-        
+        print(f'Completadas: {gestor.contar_completadas()}')
+        opcion_ver_c(gestor)
+        print(f'Pendientes:{gestor.contar_pendientes()}')
+        opcion_ver_p(gestor)
 
 
+def main():
+
+    gestor = GestorTareas(ARCHIVO_TAREAS)
+    gestor.cargar()
 
 
+    while True:
+        opcion = mostrar_menu()
 
+        if opcion == 1:
+            opcion_agregar(gestor)
+        elif opcion == 2:
+            opcion_modificar(gestor)
+        elif opcion == 3:
+            opcion_eliminar(gestor)
+        elif opcion == 4:
+            opcion_ver(gestor)
+        elif opcion == 5:
+            opcion_ordenadas(gestor)
+        elif opcion == 6:
+            opcion_mas_larga(gestor)
+        elif opcion == 7:
+            opcion_ver_p(gestor)
+        elif opcion == 8:
+            ver_resumen(gestor)
 
-
-
-
-
-
-
-
-
-
-
+if __name__ == '__main__':
+    main()
