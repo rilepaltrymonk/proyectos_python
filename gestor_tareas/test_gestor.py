@@ -1,6 +1,10 @@
 import pytest
 
-from gestor_tareas import Tarea, GestorTareas
+from tareas import Tarea
+from gestor import GestorTareas
+from menu import *
+from main import *
+
 
 def test_tarea_nueva_esta_pendiente():
     t = Tarea('Compra leche')
