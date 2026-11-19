@@ -1,0 +1,1 @@
+--Con este pokedex puedes revisar los pokemon y algunas de sus caracteristicas --
